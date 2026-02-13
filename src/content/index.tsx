@@ -1,21 +1,21 @@
-import { createRoot } from "react-dom/client";
-import App from "./App";
 
 (() => {
   if (document.getElementById("my-extension-root")) return;
 
   const host = document.createElement("div");
-  host.id = "my-extension-root";
-  host.style.position = "fixed";
-  host.style.bottom = "20px";
-  host.style.right = "20px";
-  host.style.zIndex = "2147483647";
+host.style.position = "fixed";
+host.style.top = "10px";
+host.style.left = "10px";
+host.style.zIndex = "2147483647";
 
-  const shadow = host.attachShadow({ mode: "open" });
-  document.documentElement.appendChild(host);
+const shadow = host.attachShadow({ mode: "open" });
 
-  const mountPoint = document.createElement("div");
-  shadow.appendChild(mountPoint);
+const inner = document.createElement("div");
+inner.textContent = "Hello!";
+inner.style.background = "red";
+inner.style.color = "white";
+inner.style.padding = "10px";
 
-  createRoot(mountPoint).render(<App />);
+shadow.appendChild(inner);
+document.documentElement.appendChild(host);
 })();
