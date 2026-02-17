@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run buildCustom",
+    "buildCustom": "npm run buildOne && npm run buildTwo",
+    "buildOne": "tsc -b && vite build --config buildOne.config.ts",
+    "buildTwo": "tsc -b && vite build --config buildTwo.config.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },

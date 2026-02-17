@@ -1,3 +1,54 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { useState } from "react";
+
+function ContentApp() {
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+
+  const handleCaptureScreenshot = () => {
+    chrome.runtime.sendMessage({ type: "CAPTURE_SCREENSHOT" }, (response) => {
+      if (response?.screenshot) {
+        setScreenshot(response.screenshot);
+      }
+    });
+  };
+
+  return (
+    <div
+      style={{
+        background: "red",
+        color: "white",
+        padding: "10px",
+        borderRadius: "8px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div>Hello!</div>
+      <button
+        onClick={handleCaptureScreenshot}
+        style={{
+          marginTop: "10px",
+          padding: "5px 10px",
+          cursor: "pointer",
+          background: "red",
+        }}
+      >
+        Capture Screenshot
+      </button>
+      {screenshot && (
+        <img
+          src={screenshot}
+          alt="Screenshot"
+          style={{
+            width: "200px",
+            marginTop: "10px",
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 (() => {
   if (document.getElementById("my-extension-root")) return;
 
@@ -10,42 +61,26 @@
 
   const shadow = host.attachShadow({ mode: "open" });
 
+  // Create a container inside shadow DOM for React
   const container = document.createElement("div");
-  container.style.background = "red";
-  container.style.color = "white";
-  container.style.padding = "10px";
-  container.style.borderRadius = "8px";
-  container.style.fontFamily = "sans-serif";
-
-  const text = document.createElement("div");
-  text.textContent = "Hello!";
-
-  const button = document.createElement("button");
-  button.textContent = "Capture Screenshot";
-  button.style.marginTop = "10px";
-  button.style.padding = "5px 10px";
-  button.style.cursor = "pointer";
-  button.style.background = "red";
-
-  // 👇 When button clicked
-  button.addEventListener("click", () => {
-    chrome.runtime.sendMessage(
-      { type: "CAPTURE_SCREENSHOT" },
-      (response) => {
-        if (!response?.screenshot) return;
-
-        const img = document.createElement("img");
-        img.src = response.screenshot;
-        img.style.width = "200px";
-        img.style.marginTop = "10px";
-
-        container.appendChild(img);
-      }
-    );
-  });
-
-  container.appendChild(text);
-  container.appendChild(button);
   shadow.appendChild(container);
+
+  // Create a style element for shadow DOM
+  const style = document.createElement("style");
+  style.textContent = `
+    :host {
+      all: initial;
+    }
+  `;
+  shadow.appendChild(style);
+
+  // Render React app into shadow DOM
+  const root = createRoot(container);
+  root.render(
+    <StrictMode>
+      <ContentApp />
+    </StrictMode>,
+  );
+
   document.documentElement.appendChild(host);
 })();

@@ -1,0 +1,80 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { writeFileSync } from "fs";
+import { join } from "path";
+
+// Plugin to inline chunk imports into content.js and ensure it's not a module
+function inlineContentScriptChunks() {
+  return {
+    name: "inline-content-script-chunks",
+    writeBundle(options: any, bundle: any) {
+      const contentJs = bundle["content.js"];
+      if (!contentJs || contentJs.type !== "chunk") return;
+
+      // Find all chunk files that content.js imports
+      const imports = contentJs.imports || [];
+      let contentCode = contentJs.code;
+
+      for (const importPath of imports) {
+        const chunk = bundle[importPath];
+        if (chunk && chunk.type === "chunk") {
+          // Escape special regex characters in the import path
+          const escapedPath = importPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          
+          // Try multiple import statement patterns - must match exactly
+          const patterns = [
+            // Standard: import ... from "./path"
+            new RegExp(`import[^"']*from\\s*["']\\./${escapedPath}["'];?\\s*`, "g"),
+            // Without semicolon
+            new RegExp(`import[^"']*from\\s*["']\\./${escapedPath}["']\\s*`, "g"),
+            // With different quote styles
+            new RegExp(`import[^"']*from\\s*['"]\\./${escapedPath}['"];?\\s*`, "g"),
+          ];
+          
+          // Replace all variations of the import statement
+          for (const pattern of patterns) {
+            contentCode = contentCode.replace(pattern, chunk.code);
+          }
+        }
+      }
+
+      // Remove any export statements that would make it a module
+      contentCode = contentCode.replace(/^export\s+\{[^}]*\}\s*;?\s*/gm, '');
+      contentCode = contentCode.replace(/^export\s+default\s+/gm, '');
+      contentCode = contentCode.replace(/^export\s+/gm, '');
+      
+      // Wrap in IIFE to ensure it's not treated as a module
+      // Only if the code doesn't already start with an IIFE pattern
+      if (!contentCode.trim().startsWith('(function') && !contentCode.trim().startsWith('!function')) {
+        contentCode = `(function() {\n${contentCode}\n})();`;
+      }
+
+      // Write the inlined content back
+      const outputPath = join(options.dir || "dist", "content.js");
+      writeFileSync(outputPath, contentCode);
+    },
+  };
+}
+
+// https://vite.dev/config/
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        side_panel: "index.html",
+        background: "src/background/index.ts",
+        content: "src/content/index.tsx",
+      },
+      output: {
+        // Keep nice names for Chrome extension entry files
+        entryFileNames: "[name].js",
+        // Use ES module format (we'll wrap content.js in IIFE in the plugin)
+        format: "es",
+      },
+    },
+    outDir: "dist",
+    chunkSizeWarningLimit: 1000,
+  },
+  plugins: [react(), tailwindcss(), inlineContentScriptChunks()],
+});
