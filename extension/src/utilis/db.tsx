@@ -1,3 +1,15 @@
+export interface Note {
+  id: string;
+  fileId: string;
+  videoId: string | null;
+  url: string;
+  videoTitle: string;
+  timestamp: number | null;
+  image?: string;
+  text?: string;
+  createdAt: number;
+}
+
 const DB_NAME = "easy-notes-db";
 const DB_VERSION = 2;
 
@@ -101,6 +113,19 @@ export async function getActiveFile(): Promise<string | null> {
   });
 }
 
+
+export async function ensureActiveFile(): Promise<string> {
+  const activeFileId = await getActiveFile();
+
+  if (activeFileId) {
+    return activeFileId;
+  }
+
+  const newFileId = await createFile("Quick Notes", null);
+
+  return newFileId;
+}
+
 export async function saveNote(note: any) {
   const db = await openDB();
 
@@ -117,5 +142,24 @@ export async function saveNote(note: any) {
     request.onerror = () => {
       reject(request.error);
     };
+  });
+}
+
+export async function getNotesByFileId(fileId: string) : Promise<Note[]> {
+  const db = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("notes", "readonly");
+    const store = tx.objectStore("notes");
+
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      const allNotes = request.result as Note[];
+      const filtered = allNotes.filter(note => note.fileId === fileId);
+      resolve(filtered);
+    };
+
+    request.onerror = () => reject(request.error);
   });
 }

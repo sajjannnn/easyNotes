@@ -16,4 +16,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   });
     return true;
   }
+    if (message.type === "OPEN_DASHBOARD") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("dashboard.html"),
+    });
+  }
 });

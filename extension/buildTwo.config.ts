@@ -13,6 +13,7 @@ export default defineConfig(() => {
         input: {
           side_panel: 'index.html',
           background: 'src/background/index.ts',
+          dashboard: "dashboard.html",
         },
         output: {
           ...baseConfig.build?.rollupOptions?.output,

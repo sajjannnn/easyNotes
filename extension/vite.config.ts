@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { writeFileSync } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 
 // Plugin to inline chunk imports into content.js and ensure it's not a module
 function inlineContentScriptChunks() {
@@ -21,7 +21,7 @@ function inlineContentScriptChunks() {
         if (chunk && chunk.type === "chunk") {
           // Escape special regex characters in the import path
           const escapedPath = importPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          
+
           // Try multiple import statement patterns - must match exactly
           const patterns = [
             // Standard: import ... from "./path"
@@ -31,7 +31,7 @@ function inlineContentScriptChunks() {
             // With different quote styles
             new RegExp(`import[^"']*from\\s*['"]\\./${escapedPath}['"];?\\s*`, "g"),
           ];
-          
+
           // Replace all variations of the import statement
           for (const pattern of patterns) {
             contentCode = contentCode.replace(pattern, chunk.code);
@@ -40,13 +40,13 @@ function inlineContentScriptChunks() {
       }
 
       // Remove any export statements that would make it a module
-      contentCode = contentCode.replace(/^export\s+\{[^}]*\}\s*;?\s*/gm, '');
-      contentCode = contentCode.replace(/^export\s+default\s+/gm, '');
-      contentCode = contentCode.replace(/^export\s+/gm, '');
-      
+      contentCode = contentCode.replace(/^export\s+\{[^}]*\}\s*;?\s*/gm, "");
+      contentCode = contentCode.replace(/^export\s+default\s+/gm, "");
+      contentCode = contentCode.replace(/^export\s+/gm, "");
+
       // Wrap in IIFE to ensure it's not treated as a module
       // Only if the code doesn't already start with an IIFE pattern
-      if (!contentCode.trim().startsWith('(function') && !contentCode.trim().startsWith('!function')) {
+      if (!contentCode.trim().startsWith("(function") && !contentCode.trim().startsWith("!function")) {
         contentCode = `(function() {\n${contentCode}\n})();`;
       }
 
