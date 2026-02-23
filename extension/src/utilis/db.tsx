@@ -156,7 +156,8 @@ export async function getNotesByFileId(fileId: string) : Promise<Note[]> {
 
     request.onsuccess = () => {
       const allNotes = request.result as Note[];
-      const filtered = allNotes.filter(note => note.fileId === fileId);
+      const filtered = allNotes.filter(note => note.fileId === fileId)
+      .sort((a, b) => a.createdAt - b.createdAt);
       resolve(filtered);
     };
 

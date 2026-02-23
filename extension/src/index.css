@@ -1,1 +1,127 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-border: hsl(var(--border));
+  --color-primary: hsl(var(--primary));
+}
+
+@layer base {
+  :root {
+    --background: 225 25% 97%;
+    --foreground: 225 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 30% 10%;
+    --primary: 234 89% 64%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 20% 92%;
+    --secondary-foreground: 225 30% 15%;
+    --muted: 225 15% 93%;
+    --muted-foreground: 225 10% 50%;
+    --accent: 234 89% 64%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 15% 88%;
+    --input: 225 15% 88%;
+    --ring: 234 89% 64%;
+    --radius: 0.625rem;
+
+    --sidebar-background: 225 25% 95%;
+    --sidebar-foreground: 225 10% 40%;
+    --sidebar-primary: 234 89% 64%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 234 60% 94%;
+    --sidebar-accent-foreground: 234 89% 50%;
+    --sidebar-border: 225 15% 88%;
+    --sidebar-ring: 234 89% 64%;
+  }
+
+  /* .dark {
+    --background: 228 20% 7%;
+    --foreground: 220 15% 90%;
+    --card: 228 18% 10%;
+    --card-foreground: 220 15% 90%;
+    --popover: 228 20% 9%;
+    --popover-foreground: 220 15% 90%;
+    --primary: 234 89% 64%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 15% 14%;
+    --secondary-foreground: 220 15% 85%;
+    --muted: 228 12% 16%;
+    --muted-foreground: 220 10% 50%;
+    --accent: 234 60% 18%;
+    --accent-foreground: 234 89% 74%;
+    --destructive: 0 72% 51%; 
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 12% 16%;
+    --input: 228 12% 18%;
+    --ring: 234 89% 64%;
+
+    --sidebar-background: 228 20% 8%;
+    --sidebar-foreground: 220 10% 55%;
+    --sidebar-primary: 234 89% 64%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 234 50% 14%;
+    --sidebar-accent-foreground: 234 89% 74%;
+    --sidebar-border: 228 12% 14%;
+    --sidebar-ring: 234 89% 64%;
+  } */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  /* html {
+    @apply dark;
+  } */
+}
+
+@layer utilities {
+  .glass-surface {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+  .glow-primary {
+    box-shadow: 0 0 20px -5px hsl(234 89% 64% / 0.25);
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-[hsl(260,80%,68%)];
+  }
+  .hover-lift {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5;
+  }
+  .note-card-shadow {
+    box-shadow: 0 1px 3px 0 hsl(228 20% 4% / 0.3), 0 1px 2px -1px hsl(228 20% 4% / 0.3);
+  }
+  .note-card-shadow-hover {
+    box-shadow: 0 10px 25px -5px hsl(228 20% 4% / 0.4), 0 8px 10px -6px hsl(234 89% 64% / 0.08);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(228 12% 22%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(228 12% 30%);
+}
+
