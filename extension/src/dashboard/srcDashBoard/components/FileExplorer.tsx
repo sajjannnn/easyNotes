@@ -1,5 +1,25 @@
-import { useState } from "react";
-import { FolderOpen, Folder, FileText, ChevronRight, ChevronDown, MoreHorizontal,ChevronsRightIcon, ChevronsLeftIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  FolderOpen,
+  Folder,
+  FileText,
+  ChevronRight,
+  ChevronDown,
+  MoreHorizontal,
+  ChevronsRightIcon,
+  ChevronsLeftIcon,
+  Plus,
+  FolderPlus
+} from "lucide-react";
+import { useDispatch } from "react-redux";
+import {
+  getAllFolders,
+  getAllFiles,
+  createFile,
+  createFolder,
+  setActiveFile
+} from "../../../utilis/db";
+import { nowOpenNoteId } from "../utilis/notesSlice";
 
 interface FileNode {
   id: string;
@@ -8,100 +28,173 @@ interface FileNode {
   children?: FileNode[];
 }
 
-const mockTree: FileNode[] = [
-  {
-    id: "1",
-    name: "Machine Learning",
-    type: "folder",
-    children: [
-      { id: "1a", name: "Neural Networks Basics", type: "file" },
-      { id: "1b", name: "Backpropagation Notes", type: "file" },
-      { id: "1c", name: "CNN Architecture", type: "file" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Data Structures",
-    type: "folder",
-    children: [
-      { id: "2a", name: "Binary Trees", type: "file" },
-      { id: "2b", name: "Graph Algorithms", type: "file" },
-    ],
-  },
-  {
-    id: "3",
-    name: "Algorithms",
-    type: "folder",
-    children: [
-      { id: "3a", name: "Big-O Notation", type: "file" },
-      { id: "3b", name: "Dynamic Programming", type: "file" },
-      { id: "3c", name: "Sorting Algorithms", type: "file" },
-    ],
-  },
-  { id: "4", name: "Quick Reference", type: "file" },
-];
-
 const FileExplorer = () => {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["1"]));
-  const [activeFile, setActiveFile] = useState("1a");
+  const dispatch = useDispatch();
+
+  const [tree, setTree] = useState<FileNode[]>([]);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [activeFile, setActiveFileState] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
 
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+
+  // 🔥 Build Tree from DB
+  const loadTree = async () => {
+    const folders = await getAllFolders();
+    const files = await getAllFiles();
+
+    const folderNodes: FileNode[] = folders.map(folder => ({
+      id: folder.id,
+      name: folder.name,
+      type: "folder" as const,
+      children: files
+        .filter(file => file.folderId === folder.id)
+        .map(file => ({
+          id: file.id,
+          name: file.name,
+          type: "file" as const
+        }))
+    }));
+
+    const rootFiles: FileNode[] = files
+      .filter(file => !file.folderId)
+      .map(file => ({
+        id: file.id,
+        name: file.name,
+        type: "file" as const
+      }));
+
+    setTree([...folderNodes, ...rootFiles]);
+  };
+
+  useEffect(() => {
+    loadTree();
+  }, []);
+
+  // Toggle expand
   const toggleFolder = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+    setExpanded(prev => {
+      const newSet = new Set(prev);
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+      return newSet;
     });
+  };
+
+  // Create Folder
+  const handleCreateFolder = async () => {
+    const name = prompt("Folder name?");
+    if (!name) return;
+
+    await createFolder(name);
+    await loadTree();
+  };
+
+  // Create File
+  const handleCreateFile = async () => {
+    const name = prompt("File name?");
+    if (!name) return;
+
+    const fileId = await createFile(name, selectedFolder);
+    await setActiveFile(fileId);
+    dispatch(nowOpenNoteId(fileId));
+    setActiveFileState(fileId);
+
+    await loadTree();
   };
 
   const renderNode = (node: FileNode, depth = 0) => {
     const isExpanded = expanded.has(node.id);
     const isActive = activeFile === node.id;
-    if(!isOpen)return (
+
+    return (
       <div key={node.id}>
         <button
-          onClick={() => (node.type === "folder" ? toggleFolder(node.id) : setActiveFile(node.id))}
-          className={`w-full flex items-center gap-1.5 px-2 py-1.5 text-[13px] rounded-md transition-all duration-150 group
-            ${isActive ? "bg-accent text-accent-foreground font-medium" : "text-sidebar-foreground hover:bg-secondary/60 hover:text-foreground"}
+          onClick={() => {
+            if (node.type === "folder") {
+              toggleFolder(node.id);
+              setSelectedFolder(node.id);
+            } else {
+              setActiveFileState(node.id);
+              dispatch(nowOpenNoteId(node.id));
+              setActiveFile(node.id);
+            }
+          }}
+          className={`w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded-md group transition
+            ${
+              isActive
+                ? "bg-purple-600 text-white"
+                : "hover:bg-gray-200 text-gray-700"
+            }
           `}
-          style={{ paddingLeft: `${depth * 14 + 8}px` }}
+          style={{ paddingLeft: `${depth * 16 + 8}px` }}
         >
           {node.type === "folder" ? (
             <>
-              {isExpanded ? <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />}
-              {isExpanded ? <FolderOpen className="w-4 h-4 shrink-0 text-primary/70" /> : <Folder className="w-4 h-4 shrink-0 text-muted-foreground" />}
+              {isExpanded ? (
+                <ChevronDown size={14} />
+              ) : (
+                <ChevronRight size={14} />
+              )}
+              {isExpanded ? (
+                <FolderOpen size={16} />
+              ) : (
+                <Folder size={16} />
+              )}
             </>
           ) : (
             <>
-              <span className="w-3.5" />
-              <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
+              <span className="w-4" />
+              <FileText size={16} />
             </>
           )}
+
           <span className="truncate">{node.name}</span>
-          <MoreHorizontal className="w-3.5 h-3.5 ml-auto shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" />
+
+          <MoreHorizontal
+            size={14}
+            className="ml-auto opacity-0 group-hover:opacity-100"
+          />
         </button>
-        {node.type === "folder" && isExpanded && node.children && <div className="animate-fade-in">{node.children.map((child) => renderNode(child, depth + 1))}</div>}
+
+        {node.type === "folder" &&
+          isExpanded &&
+          node.children &&
+          node.children.map(child => renderNode(child, depth + 1))}
       </div>
     );
   };
 
   return (
-    <aside className="border-r border-border/50 bg-sidebar flex flex-col h-full">
+    <aside className="w-64 border-r bg-white flex flex-col h-full">
       {/* Header */}
-      <div className="px-3 py-3 flex items-center justify-between border-b border-border/30">
-        {!isOpen && <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Explorer</span>}
-        <div className="flex gap-0.5">
-          {/* <button className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors" title="New File">
-            <Plus className="w-4 h-4" />
-          </button> */}
-          <button onClick={() => setIsOpen(!isOpen)} className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors" title="New Folder">
-            {isOpen ? <ChevronsLeftIcon className="w-4 h-4" /> : <ChevronsRightIcon className="w-4 h-4" />}
+      <div className="flex items-center justify-between px-3 py-2 border-b">
+        <span className="text-xs font-semibold uppercase text-gray-500">
+          Explorer
+        </span>
+
+        <div className="flex gap-1">
+          <button onClick={handleCreateFile} title="New File">
+            <Plus size={16} />
+          </button>
+
+          <button onClick={handleCreateFolder} title="New Folder">
+            <FolderPlus size={16} />
+          </button>
+
+          <button onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? (
+              <ChevronsLeftIcon size={16} />
+            ) : (
+              <ChevronsRightIcon size={16} />
+            )}
           </button>
         </div>
       </div>
 
       {/* Tree */}
-      <div className="flex-1 overflow-y-auto py-2 px-1.5 space-y-0.5">{mockTree.map((node) => renderNode(node))}</div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {tree.map(node => renderNode(node))}
+      </div>
     </aside>
   );
 };
