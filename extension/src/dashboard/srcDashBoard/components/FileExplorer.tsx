@@ -9,7 +9,7 @@ import {
   ChevronsRightIcon,
   ChevronsLeftIcon,
   Plus,
-  FolderPlus
+  FolderPlus,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import {
@@ -17,9 +17,9 @@ import {
   getAllFiles,
   createFile,
   createFolder,
-  setActiveFile
+  setActiveFile,
 } from "../../../utilis/db";
-import { nowOpenNoteId } from "../utilis/notesSlice";
+import { setActiveFileId } from "../../srcDashBoard/utilis/fileSlice";
 
 interface FileNode {
   id: string;
@@ -35,33 +35,34 @@ const FileExplorer = () => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [activeFile, setActiveFileState] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
-
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
 
-  // 🔥 Build Tree from DB
+  // ==========================
+  // LOAD TREE FROM INDEXEDDB
+  // ==========================
   const loadTree = async () => {
     const folders = await getAllFolders();
     const files = await getAllFiles();
 
-    const folderNodes: FileNode[] = folders.map(folder => ({
+    const folderNodes: FileNode[] = folders.map((folder) => ({
       id: folder.id,
       name: folder.name,
-      type: "folder" as const,
+      type: "folder",
       children: files
-        .filter(file => file.folderId === folder.id)
-        .map(file => ({
+        .filter((file) => file.folderId === folder.id)
+        .map((file) => ({
           id: file.id,
           name: file.name,
-          type: "file" as const
-        }))
+          type: "file",
+        })),
     }));
 
     const rootFiles: FileNode[] = files
-      .filter(file => !file.folderId)
-      .map(file => ({
+      .filter((file) => !file.folderId)
+      .map((file) => ({
         id: file.id,
         name: file.name,
-        type: "file" as const
+        type: "file",
       }));
 
     setTree([...folderNodes, ...rootFiles]);
@@ -71,37 +72,48 @@ const FileExplorer = () => {
     loadTree();
   }, []);
 
-  // Toggle expand
+  // ==========================
+  // TOGGLE FOLDER
+  // ==========================
   const toggleFolder = (id: string) => {
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const newSet = new Set(prev);
       newSet.has(id) ? newSet.delete(id) : newSet.add(id);
       return newSet;
     });
   };
 
-  // Create Folder
+  // ==========================
+  // CREATE FOLDER
+  // ==========================
   const handleCreateFolder = async () => {
     const name = prompt("Folder name?");
     if (!name) return;
 
-    await createFolder(name);
+    await createFolder(name, selectedFolder);
     await loadTree();
   };
 
-  // Create File
+  // ==========================
+  // CREATE FILE
+  // ==========================
   const handleCreateFile = async () => {
     const name = prompt("File name?");
     if (!name) return;
 
     const fileId = await createFile(name, selectedFolder);
-    await setActiveFile(fileId);
-    dispatch(nowOpenNoteId(fileId));
-    setActiveFileState(fileId);
+
+    // Sync everything
+    await setActiveFile(fileId);           // IndexedDB active file
+    dispatch(setActiveFileId(fileId));     // Redux active file
+    setActiveFileState(fileId);            // UI highlight
 
     await loadTree();
   };
 
+  // ==========================
+  // RENDER NODE
+  // ==========================
   const renderNode = (node: FileNode, depth = 0) => {
     const isExpanded = expanded.has(node.id);
     const isActive = activeFile === node.id;
@@ -109,14 +121,14 @@ const FileExplorer = () => {
     return (
       <div key={node.id}>
         <button
-          onClick={() => {
+          onClick={async () => {
             if (node.type === "folder") {
               toggleFolder(node.id);
               setSelectedFolder(node.id);
             } else {
               setActiveFileState(node.id);
-              dispatch(nowOpenNoteId(node.id));
-              setActiveFile(node.id);
+              dispatch(setActiveFileId(node.id));
+              await setActiveFile(node.id);
             }
           }}
           className={`w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded-md group transition
@@ -159,11 +171,16 @@ const FileExplorer = () => {
         {node.type === "folder" &&
           isExpanded &&
           node.children &&
-          node.children.map(child => renderNode(child, depth + 1))}
+          node.children.map((child) =>
+            renderNode(child, depth + 1)
+          )}
       </div>
     );
   };
 
+  // ==========================
+  // UI
+  // ==========================
   return (
     <aside className="w-64 border-r bg-white flex flex-col h-full">
       {/* Header */}
@@ -193,7 +210,7 @@ const FileExplorer = () => {
 
       {/* Tree */}
       <div className="flex-1 overflow-y-auto p-2">
-        {tree.map(node => renderNode(node))}
+        {tree.map((node) => renderNode(node))}
       </div>
     </aside>
   );

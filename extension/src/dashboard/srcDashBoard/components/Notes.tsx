@@ -1,53 +1,55 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import type { RootState } from "../../srcDashBoard/utilis/dashBoardStore";
 import { getNotesByFileId } from "../../../utilis/db";
-
-type NoteType = {
-  id: string;
-  image?: string;
-  text?: string;
-  timestamp?: number | null;
-  createdAt: number;
-};
+import type { Note } from "../../../utilis/db";
 
 const Notes = () => {
-  const openNotes = useSelector(
-    (store: any) => store.noteSlice.openNote
+  const activeFileId = useSelector(
+    (state: RootState) => state.file.activeFileId
   );
 
-  const [notes, setNotes] = useState<NoteType[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   useEffect(() => {
-    if (!openNotes) {
+    if (!activeFileId) {
       setNotes([]);
       return;
     }
 
-    async function fetchNotes() {
-      setLoading(true);
+    const loadNotes = async () => {
+      const fileNotes = await getNotesByFileId(activeFileId);
+      setNotes(fileNotes);
+    };
 
-      const fetchedNotes = await getNotesByFileId(openNotes);
+    loadNotes();
+  }, [activeFileId]);
+console.log("Active File ID:", activeFileId);useEffect(() => {
+  const load = async () => {
+    if (!activeFileId) return;
 
-      setNotes(fetchedNotes);
-      setLoading(false);
-    }
+    console.log("Active File ID:", activeFileId);
 
-    fetchNotes();
-  }, [openNotes]);
+    const fetched = await getNotesByFileId(activeFileId);
+    console.log("Fetched Notes:", fetched);
 
+    setNotes(fetched);
+  };
+
+  load();
+}, [activeFileId]);
   return (
     <div className="flex-1 p-6 overflow-y-auto">
-      
-      {loading && <p>Loading...</p>}
+      {!activeFileId && (
+        <p className="text-gray-400">Select a file to view notes.</p>
+      )}
 
-      {!loading && notes.length === 0 && (
-        <p className="text-gray-500">No notes yet.</p>
+      {activeFileId && notes.length === 0 && (
+        <p className="text-gray-400">No notes yet.</p>
       )}
 
       {notes.map((note) => (
         <div key={note.id} className="mb-8 border-b pb-6">
-
           {note.image && (
             <img
               src={note.image}
@@ -55,12 +57,11 @@ const Notes = () => {
             />
           )}
 
-          {note.timestamp !== null &&
-            note.timestamp !== undefined && (
-              <p className="text-sm text-gray-500 mb-2">
-                ⏱ {note.timestamp.toFixed(2)} sec
-              </p>
-            )}
+          {note.timestamp !== null && (
+            <p className="text-sm text-gray-500 mb-2">
+              ⏱ {note.timestamp.toFixed(2)} sec
+            </p>
+          )}
 
           {note.text && (
             <p className="text-gray-800 whitespace-pre-wrap">

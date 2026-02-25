@@ -3,6 +3,7 @@
 // import { Sparkles } from "lucide-react";
 import TopNavBar from "./srcDashBoard/components/TopNavBar";
 import FileExplorer from "./srcDashBoard/components/FileExplorer";
+import Notes from "./srcDashBoard/components/Notes";
 
 const DashBoardApp = () => {
   // const [aiPanelOpen, setAiPanelOpen] = useState(true);
@@ -14,7 +15,7 @@ const DashBoardApp = () => {
 
       <div className="flex flex-1 min-h-0">
         <FileExplorer />
-
+<Notes/>
         {/* Center: Notes Timeline */}
         {/* <NotesTimeline onScreenshotClick={(src) => setModalImage(src)} /> */}
 
