@@ -5,26 +5,32 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  // 📸 Capture Screenshot
+
+  // =============================
+  // 📸 CAPTURE SCREENSHOT
+  // =============================
   if (message.type === "CAPTURE_SCREENSHOT") {
     chrome.tabs.captureVisibleTab({ format: "png" })
       .then((dataUrl) => {
         sendResponse({
           success: true,
-          image: dataUrl
+          image: dataUrl,
         });
       })
-      .catch((err) => {
+      .catch((error) => {
+        console.error("Screenshot failed:", error);
         sendResponse({
           success: false,
-          error: err.message
+          error: error?.message || "Screenshot failed",
         });
       });
 
-    return true; // required for async response
+    return true; // IMPORTANT for async response
   }
 
-  // 💾 Save Note (NOW handled in background)
+  // =============================
+  // 💾 SAVE NOTE
+  // =============================
   if (message.type === "SAVE_NOTE") {
     (async () => {
       try {
@@ -37,19 +43,29 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
         await saveNote(noteToSave);
 
+        console.log("Note saved to file:", activeFileId);
+
         sendResponse({ success: true });
       } catch (error) {
-        sendResponse({ success: false });
+        console.error("Save note failed:", error);
+        sendResponse({
+          success: false,
+          error: "Failed to save note",
+        });
       }
     })();
 
-    return true;
+    return true; // IMPORTANT
   }
 
-  // 🖥 Open Dashboard
+  // =============================
+  // 🖥 OPEN DASHBOARD
+  // =============================
   if (message.type === "OPEN_DASHBOARD") {
     chrome.tabs.create({
       url: chrome.runtime.getURL("dashboard.html"),
     });
+
+    sendResponse({ success: true });
   }
 });

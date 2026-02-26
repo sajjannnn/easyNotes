@@ -1,24 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  FolderOpen,
-  Folder,
-  FileText,
-  ChevronRight,
-  ChevronDown,
-  MoreHorizontal,
-  ChevronsRightIcon,
-  ChevronsLeftIcon,
-  Plus,
-  FolderPlus,
-} from "lucide-react";
+import { FolderOpen, Folder, FileText, ChevronRight, ChevronDown, MoreHorizontal, ChevronsRightIcon, ChevronsLeftIcon, Plus, FolderPlus } from "lucide-react";
 import { useDispatch } from "react-redux";
-import {
-  getAllFolders,
-  getAllFiles,
-  createFile,
-  createFolder,
-  setActiveFile,
-} from "../../../utilis/db";
+import { getAllFolders, getAllFiles, createFile, createFolder, setActiveFile } from "../../../utilis/db";
 import { setActiveFileId } from "../../srcDashBoard/utilis/fileSlice";
 
 interface FileNode {
@@ -104,9 +87,9 @@ const FileExplorer = () => {
     const fileId = await createFile(name, selectedFolder);
 
     // Sync everything
-    await setActiveFile(fileId);           // IndexedDB active file
-    dispatch(setActiveFileId(fileId));     // Redux active file
-    setActiveFileState(fileId);            // UI highlight
+    await setActiveFile(fileId); // IndexedDB active file
+    dispatch(setActiveFileId(fileId)); // Redux active file
+    setActiveFileState(fileId); // UI highlight
 
     await loadTree();
   };
@@ -132,26 +115,14 @@ const FileExplorer = () => {
             }
           }}
           className={`w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded-md group transition
-            ${
-              isActive
-                ? "bg-purple-600 text-white"
-                : "hover:bg-gray-200 text-gray-700"
-            }
+            ${isActive ? "bg-purple-600 text-white" : "hover:bg-gray-200 text-gray-700"}
           `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
         >
           {node.type === "folder" ? (
             <>
-              {isExpanded ? (
-                <ChevronDown size={14} />
-              ) : (
-                <ChevronRight size={14} />
-              )}
-              {isExpanded ? (
-                <FolderOpen size={16} />
-              ) : (
-                <Folder size={16} />
-              )}
+              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />}
             </>
           ) : (
             <>
@@ -162,18 +133,10 @@ const FileExplorer = () => {
 
           <span className="truncate">{node.name}</span>
 
-          <MoreHorizontal
-            size={14}
-            className="ml-auto opacity-0 group-hover:opacity-100"
-          />
+          <MoreHorizontal size={14} className="ml-auto opacity-0 group-hover:opacity-100" />
         </button>
 
-        {node.type === "folder" &&
-          isExpanded &&
-          node.children &&
-          node.children.map((child) =>
-            renderNode(child, depth + 1)
-          )}
+        {node.type === "folder" && isExpanded && node.children && node.children.map((child) => renderNode(child, depth + 1))}
       </div>
     );
   };
@@ -182,36 +145,33 @@ const FileExplorer = () => {
   // UI
   // ==========================
   return (
-    <aside className="w-64 border-r bg-white flex flex-col h-full">
+    <aside className=" border-r bg-white flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b">
-        <span className="text-xs font-semibold uppercase text-gray-500">
-          Explorer
-        </span>
+      {isOpen ? (
+        <div className="w-64">
+          <div className="flex items-center justify-between px-3 py-2 border-b">
+            <span className="text-xs font-semibold uppercase text-gray-500">Explorer</span>
 
-        <div className="flex gap-1">
-          <button onClick={handleCreateFile} title="New File">
-            <Plus size={16} />
-          </button>
+            <div className="flex gap-1">
+              <button onClick={handleCreateFile} title="New File">
+                <Plus size={16} />
+              </button>
 
-          <button onClick={handleCreateFolder} title="New Folder">
-            <FolderPlus size={16} />
-          </button>
+              <button onClick={handleCreateFolder} title="New Folder">
+                <FolderPlus size={16} />
+              </button>
 
-          <button onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? (
-              <ChevronsLeftIcon size={16} />
-            ) : (
-              <ChevronsRightIcon size={16} />
-            )}
-          </button>
+              <button onClick={() => setIsOpen(!isOpen)}>{isOpen ? <ChevronsLeftIcon size={16} /> : <ChevronsRightIcon size={16} />}</button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-2">{tree.map((node) => renderNode(node))}</div>
         </div>
-      </div>
-
-      {/* Tree */}
-      <div className="flex-1 overflow-y-auto p-2">
-        {tree.map((node) => renderNode(node))}
-      </div>
+      ) : (
+        <div className="w-8 flex justify-center items-center">
+        <button className="mt-2 " onClick={() => setIsOpen(!isOpen)}>{isOpen ? <ChevronsLeftIcon size={16} /> : <ChevronsRightIcon size={16} />}</button>
+        </div>
+      )}{" "}
     </aside>
   );
 };
