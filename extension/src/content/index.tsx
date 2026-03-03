@@ -1,41 +1,48 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import Summary from "./Summary";
 import ContentApp from "./ContentApp";
 
+let hasMounted = false;
 
+function injectPanel() {
+  if (hasMounted) return;
 
-(() => {
-  if (document.getElementById("my-extension-root")) return;
+  const sidebar = document.querySelector("#secondary-inner");
+  if (!sidebar) return;
 
-  const host = document.createElement("div");
-  host.id = "my-extension-root";
-  host.style.position = "fixed";
-  host.style.top = "10px";
-  host.style.left = "10px";
-  host.style.zIndex = "2147483647";
+  const existing = document.getElementById("my-ai-panel");
+  if (existing) return;
 
-  const shadow = host.attachShadow({ mode: "open" });
-
-  // Create a container inside shadow DOM for React
   const container = document.createElement("div");
-  shadow.appendChild(container);
+  container.id = "my-ai-panel";
 
-  // Create a style element for shadow DOM
-  const style = document.createElement("style");
-  style.textContent = `
-    :host {
-      all: initial;
-    }
-  `;
-  shadow.appendChild(style);
+  container.style.background = "#0f0f0f";
+  container.style.borderRadius = "12px";
+  container.style.padding = "12px";
+  container.style.marginBottom = "16px";
+  container.style.color = "white";
 
-  // Render React app into shadow DOM
+  sidebar.prepend(container);
+
   const root = createRoot(container);
   root.render(
-    <StrictMode>
+    <>
+      <Summary />
       <ContentApp />
-    </StrictMode>,
+    </>
   );
 
-  document.documentElement.appendChild(host);
-})();
+  hasMounted = true;
+}
+
+function waitForSidebar() {
+  const interval = setInterval(() => {
+    const sidebar = document.querySelector("#secondary-inner");
+    if (sidebar) {
+      clearInterval(interval);
+      injectPanel();
+    }
+  }, 500);
+}
+
+waitForSidebar();

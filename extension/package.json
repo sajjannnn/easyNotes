@@ -17,6 +17,7 @@
     "@crxjs/vite-plugin": "^2.3.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
+    "groq-sdk": "^0.37.0",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

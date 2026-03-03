@@ -249,3 +249,146 @@ export async function getNotesByFileId(
     request.onerror = () => reject(request.error);
   });
 }
+
+// =====================
+// RENAME FILE
+// =====================
+export async function renameFile(fileId: string, newName: string) {
+  const db = await openDB();
+  const tx = db.transaction("files", "readwrite");
+  const store = tx.objectStore("files");
+
+  const file = await store.get(fileId);
+
+  return new Promise<void>((resolve, reject) => {
+    file.onsuccess = () => {
+      if (!file.result) return resolve();
+
+      const updated = {
+        ...file.result,
+        name: newName,
+      };
+
+      store.put(updated);
+      resolve();
+    };
+
+    file.onerror = () => reject(file.error);
+  });
+}
+
+// =====================
+// RENAME FOLDER
+// =====================
+export async function renameFolder(folderId: string, newName: string) {
+  const db = await openDB();
+  const tx = db.transaction("folders", "readwrite");
+  const store = tx.objectStore("folders");
+
+  const folder = await store.get(folderId);
+
+  return new Promise<void>((resolve, reject) => {
+    folder.onsuccess = () => {
+      if (!folder.result) return resolve();
+
+      const updated = {
+        ...folder.result,
+        name: newName,
+      };
+
+      store.put(updated);
+      resolve();
+    };
+
+    folder.onerror = () => reject(folder.error);
+  });
+}
+// =====================
+// DELETE NOTE
+// =====================
+export async function deleteNote(noteId: string) {
+  const db = await openDB();
+
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("notes", "readwrite");
+    const store = tx.objectStore("notes");
+
+    const request = store.delete(noteId);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+// =====================
+// DELETE FILE
+// =====================
+export async function deleteFile(fileId: string) {
+  const db = await openDB();
+
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(["files", "notes"], "readwrite");
+
+    // Delete file
+    tx.objectStore("files").delete(fileId);
+
+    // Delete all notes belonging to this file
+    const notesStore = tx.objectStore("notes");
+    const getAllNotes = notesStore.getAll();
+
+    getAllNotes.onsuccess = () => {
+      const notes = getAllNotes.result;
+      notes
+        .filter((note: any) => note.fileId === fileId)
+        .forEach((note: any) => {
+          notesStore.delete(note.id);
+        });
+    };
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+// =====================
+// DELETE FOLDER (CASCADE)
+// =====================
+export async function deleteFolder(folderId: string) {
+  const db = await openDB();
+
+  const folders = await getAllFolders();
+  const files = await getAllFiles();
+
+  // 1️⃣ Delete child folders recursively
+  const childFolders = folders.filter(f => f.parentId === folderId);
+  for (const child of childFolders) {
+    await deleteFolder(child.id);
+  }
+
+  // 2️⃣ Delete files inside this folder
+  const childFiles = files.filter(f => f.folderId === folderId);
+  for (const file of childFiles) {
+    await deleteFile(file.id);
+  }
+
+  // 3️⃣ Delete the folder itself
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("folders", "readwrite");
+    tx.objectStore("folders").delete(folderId);
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function updateNote(updatedNote: Note) {
+  const db = await openDB();
+
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("notes", "readwrite");
+    const store = tx.objectStore("notes");
+
+    const request = store.put(updatedNote);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}

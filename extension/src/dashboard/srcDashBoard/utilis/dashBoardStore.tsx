@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import noteSliceReducer from "./notesSlice";
 import fileSliceReducer from "./fileSlice"
+import aiSliceReducer from "./aiSlice"
 const store = configureStore({
   reducer: {
     notes : noteSliceReducer,
     file : fileSliceReducer,
+    ai: aiSliceReducer
   }
 })
 
