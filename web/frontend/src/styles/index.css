@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 font-sans;
+  }
+
+  ::selection {
+    @apply bg-indigo-500/30 text-white;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  input, textarea, select {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-indigo-500 hover:bg-indigo-400 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-indigo-500/50;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium px-4 py-2 rounded-lg transition-all duration-200 border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-gray-500/50;
+  }
+
+  .input-field {
+    @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 placeholder-gray-500 transition-all duration-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50;
+  }
+
+  .card {
+    @apply bg-gray-900 border border-gray-800 rounded-lg p-4 transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply card hover:border-gray-700 hover:bg-gray-800/80;
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+}
+
+@media print {
+  @page {
+    margin: 0.6cm;
+  }
+
+  * {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  a {
+    text-decoration: none !important;
+  }
+
+  .print-file-title {
+    font-size: 14pt !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.3cm !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    max-height: none !important;
+    page-break-inside: avoid;
+  }
+
+  [class*="overflow-"] {
+    overflow: visible !important;
+  }
+
+  [class*="h-screen"],
+  [class*="h-full"],
+  [class*="max-h-"] {
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .flex.h-screen, .flex.min-h-screen {
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .card,
+  [class*="rounded-"] {
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid;
+  }
+
+  ul {
+    page-break-inside: avoid;
+  }
+}

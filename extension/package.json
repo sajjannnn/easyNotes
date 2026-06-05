@@ -1,42 +1,21 @@
 {
-  "name": "easynotes",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "youtube-transcript-extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "dev:dashboard": "vite --config buildTwo.config.ts --open dashboard.html",
-    "build": "npm run buildCustom",
-    "buildCustom": "npm run buildOne && npm run buildTwo",
-    "buildOne": "tsc -b && vite build --config buildOne.config.ts",
-    "buildTwo": "tsc -b && vite build --config buildTwo.config.ts",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@crxjs/vite-plugin": "^2.3.0",
-    "@reduxjs/toolkit": "^2.11.2",
-    "@tailwindcss/vite": "^4.1.18",
-    "groq-sdk": "^0.37.0",
-    "lucide-react": "^0.575.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-redux": "^9.2.0",
-    "tailwindcss": "^4.1.18"
+    "youtube-transcript": "^1.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/chrome": "^0.1.36",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
+    "copy-webpack-plugin": "^14.0.0",
+    "webpack": "^5.107.2",
+    "webpack-cli": "^7.0.3"
   }
 }
