@@ -12,3 +12,7 @@ build/
 uploads/
 coverage/
 *.db
+deployment-variables-template.txt
+render-env-template.txt
+DEPLOYMENT_VARIABLES.md
+RENDER_DEPLOYMENT.md
