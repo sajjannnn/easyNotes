@@ -21,8 +21,6 @@ easyNotes/
 ├── extension/          Chrome extension (Manifest V3, JS)
 ├── web/backend/        Express API (Prisma, PostgreSQL, AWS S3, JWT auth)
 ├── web/frontend/       React dashboard (Vite, Tailwind CSS)
-├── RENDER_DEPLOYMENT.md
-├── DEPLOYMENT_VARIABLES.md
 └── .gitignore
 ```
 
